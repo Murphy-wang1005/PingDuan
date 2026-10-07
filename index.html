@@ -885,7 +885,6 @@ function zkCardAdd(){
   if(!v){zkToast('先输入内容');return}
   if(v.length>60){zkToast('一条字卡最多 60 字');return}
   for(var i=0;i<CARDS.length;i++){if(CARDS[i].text===v){zkToast('这条已经在字卡库里了');return}}
-  if(CARDS.length>=200){zkToast('字卡库满了(上限 200)');return}
   CARDS.push({text:v,group:(sg&&sg.value)||'其他'});
   zkSet('zk_cards',CARDS);
   __zkPoolEmptyWarned=false;
@@ -982,7 +981,7 @@ function zkImportOpen(){
   sg.value=GROUPS.indexOf(CARDS_FILTER)!==-1?CARDS_FILTER:'其他';
   zkPage('import');
 }
-// 共用导入引擎:去重/超60字/200上限,文件里未知分组自动入组
+// 共用导入引擎:去重/超60字,文件里未知分组自动入组(2026-10-08 用户取消 200 上限)
 function zkImportApply(items){
   if(!items||!items.length){zkToast('没有可导入的字卡');return}
   var added=0,skipped=0,seen={},grpChanged=false;
@@ -992,7 +991,6 @@ function zkImportApply(items){
     if(!t){skipped++;continue}
     if(t.length>60){skipped++;continue}
     if(seen[t]){skipped++;continue}
-    if(CARDS.length>=200){skipped++;continue}
     seen[t]=1;
     var g=String(items[j].group||'其他');
     if(GROUPS.indexOf(g)===-1){GROUPS.push(g);grpChanged=true}
