@@ -981,7 +981,7 @@ function zkImportOpen(){
   sg.value=GROUPS.indexOf(CARDS_FILTER)!==-1?CARDS_FILTER:'其他';
   zkPage('import');
 }
-// 共用导入引擎:去重/超60字,文件里未知分组自动入组(2026-10-08 用户取消 200 上限)
+// 共用导入引擎:去重、文件里未知分组自动入组(导入不限长度/数量,与 Murphy 回复库兼容;60 字限制只在手动单条添加)
 function zkImportApply(items){
   if(!items||!items.length){zkToast('没有可导入的字卡');return}
   var added=0,skipped=0,seen={},grpChanged=false;
@@ -989,7 +989,6 @@ function zkImportApply(items){
   for(var j=0;j<items.length;j++){
     var t=String(items[j].text||'').trim();
     if(!t){skipped++;continue}
-    if(t.length>60){skipped++;continue}
     if(seen[t]){skipped++;continue}
     seen[t]=1;
     var g=String(items[j].group||'其他');
@@ -1016,11 +1015,13 @@ function zkImportFilePicked(ev){
 }
 // 解析导入文本(Murphy 兼容):json 数组(字符串或 {text,group})或 txt 每行一条;无显式分组用 defaultGroup;无有效内容返回 null
 function zkParseImportText(txt,defaultGroup){
-  if(!txt||!txt.trim())return null;
+  txt=String(txt||'');if(txt.charCodeAt(0)===0xFEFF)txt=txt.slice(1); // 去 BOM(部分导出文件带头,不剥掉 JSON 解析必失败)
+  if(!txt.trim())return null;
   var dg=defaultGroup||'其他';
   var items=[];
-  var parsed=null,isJson=false;
-  try{parsed=JSON.parse(txt);if(Object.prototype.toString.call(parsed)==='[object Array]')isJson=true}catch(e){}
+  var parsed=null,isJson=false,isJsonNonArr=false;
+  try{parsed=JSON.parse(txt);if(Object.prototype.toString.call(parsed)==='[object Array]')isJson=true;else isJsonNonArr=true}catch(e){}
+  if(isJsonNonArr)return null; // json 但不是数组(如 Murphy 整包备份):不按 txt 硬拆,免得产出一堆垃圾卡
   if(isJson){
     for(var j=0;j<parsed.length;j++){
       var it=parsed[j];
