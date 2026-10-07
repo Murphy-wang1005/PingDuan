@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#3d2a18">
+<meta name="description" content="频段 · 字卡传讯机：一台老式收讯机，调到 TA 的频道，用电文对话">
+<title>频段 · 字卡传讯机</title>
+<style>
+/* ============ 基础 ============ */
+html,body{margin:0;padding:0}
+body{background:radial-gradient(120% 90% at 50% 10%,#4d3622 0%,#2e2013 55%,#170f08 100%);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:8px 8px 12px;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer}
+/* ============ 机壳 ============ */
+.zk-wrap{width:100%;max-width:400px;height:calc(100vh - 20px);height:calc(100dvh - 20px);max-height:820px;display:flex;flex-direction:column;position:relative;border-radius:24px;padding:10px 12px 12px;box-sizing:border-box;background:linear-gradient(105deg,#eedcb9,#f8ecd4 18%,#ecd9b6 50%,#f9eed8 82%,#e8d2ab);border:2px solid #c9a87e;box-shadow:0 18px 50px rgba(52,28,8,.55),inset 0 1px 0 rgba(255,255,255,.5)}
+.zk-wrap::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 4px)}
+.zk-screw{position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f4e3b8,#b08a4a 70%);box-shadow:inset 0 -1px 2px rgba(90,50,10,.45),0 1px 1px rgba(255,255,255,.4);z-index:2}
+.zk-screw::after{content:'';position:absolute;left:50%;top:50%;width:7px;height:1.5px;background:#8a6426;transform:translate(-50%,-50%) rotate(38deg)}
+.zk-vents{height:10px;border-radius:5px;margin-bottom:8px;background:repeating-linear-gradient(90deg,#3a2410 0 7px,#6b4522 7px 13px);box-shadow:inset 0 2px 4px rgba(90,50,10,.45)}
+.zk-plate{text-align:center;margin:2px 0 6px}
+.zk-plate-name{font-size:13px;letter-spacing:7px;padding-left:7px;color:#5c3d1c;text-shadow:0 1px 1px rgba(255,255,255,.5);font-weight:600}
+.zk-plate-sub{font-size:9px;color:#a5825a;letter-spacing:3px;margin-top:2px}
+/* ============ 圆形屏幕 ============ */
+.zk-screen-zone{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:8px;flex:none}
+.zk-screen{position:relative;width:138px;height:138px;border-radius:50%;background:radial-gradient(circle at 50% 42%,#3d2712 0%,#271708 62%,#140c04 100%);border:5px solid #5c3a18;box-shadow:inset 0 6px 22px rgba(20,10,0,.7),inset 0 -3px 10px rgba(255,180,90,.1),0 2px 0 rgba(255,255,255,.3),0 8px 22px rgba(60,30,8,.45);overflow:hidden}
+.zk-screen.lit{box-shadow:inset 0 6px 22px rgba(20,10,0,.7),inset 0 -3px 10px rgba(255,180,90,.1),0 2px 0 rgba(255,255,255,.3),0 0 28px rgba(255,180,90,.35)}
+.zk-screen::before{content:'';position:absolute;inset:0;border-radius:50%;background:repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0 1px,transparent 1px 3px);pointer-events:none;z-index:6}
+.zk-screen::after{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.04) 22%,transparent 45%);pointer-events:none;z-index:7}
+.zk-scr-avatar{position:absolute;left:50%;top:16%;transform:translateX(-50%);width:60%;height:60%;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 30%,#5e3f1c 0 32%,#4c3113 33% 47%,#3a240c 48% 62%,transparent 63%);z-index:2}
+.zk-scr-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.zk-scr-name{position:absolute;left:0;right:0;bottom:21%;text-align:center;color:#ffc46b;font-size:14px;letter-spacing:3px;padding-left:3px;text-shadow:0 0 9px rgba(255,180,90,.85);z-index:3;font-weight:600}
+.zk-scr-freq{position:absolute;left:0;right:0;bottom:10%;text-align:center;color:#ffc46b;opacity:.85;font-size:10px;font-family:ui-monospace,Consolas,monospace;letter-spacing:2px;text-shadow:0 0 7px rgba(255,180,90,.6);z-index:3}
+.zk-scr-snow{position:absolute;inset:0;border-radius:50%;opacity:0;z-index:5;background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='0.55'/></svg>");background-size:120px 120px}
+.zk-scr-snow.on{opacity:.5;animation:zksnow .25s steps(1) infinite}
+@keyframes zksnow{0%{background-position:0 0}25%{background-position:-30px 18px}50%{background-position:22px -26px}75%{background-position:-14px -14px}100%{background-position:0 0}}
+/* ============ 指示灯 ============ */
+.zk-lamps{display:flex;gap:18px}
+.zk-lamp-item{display:flex;flex-direction:column;align-items:center;gap:2px}
+.zk-lamp{width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#b89a68,#5c4322 75%);box-shadow:inset 0 1px 2px rgba(60,30,8,.6)}
+.zk-lamp.on,.zk-lamp.blink{background:radial-gradient(circle at 35% 35%,#fff3d6,#f0a94e 60%);box-shadow:0 0 10px rgba(245,170,70,.9)}
+#zkLampRecv.on,#zkLampRecv.blink{background:radial-gradient(circle at 35% 35%,#fff4d6,#e8a93c 60%);box-shadow:0 0 10px rgba(240,180,70,.9)}
+#zkLampSig.on,#zkLampSig.blink{background:radial-gradient(circle at 35% 35%,#fff8dc,#e0c14f 60%);box-shadow:0 0 12px rgba(240,205,90,1)}
+.zk-lamp.blink{animation:zklampb .5s steps(1) infinite}
+@keyframes zklampb{0%,100%{opacity:1}50%{opacity:.3}}
+.zk-lamp-label{font-size:10px;color:#a5825a;letter-spacing:2px}
+/* ============ 频率盘 ============ */
+.zk-dial-zone{display:flex;align-items:center;gap:10px;margin-bottom:8px;background:rgba(110,70,25,.14);border-radius:11px;padding:6px 10px;box-shadow:inset 0 2px 8px rgba(90,50,10,.35);flex:none}
+.zk-freq-wrap{flex:1;min-width:0}
+.zk-freq-label{font-size:9px;color:#a5825a;letter-spacing:2px;margin-bottom:3px}
+.zk-freq-strip{position:relative;height:22px;border-radius:5px;overflow:hidden;background-color:#241505;background-image:repeating-linear-gradient(90deg,transparent 0 7px,rgba(255,196,107,.5) 7px 8px);background-position:0 0;box-shadow:inset 0 2px 6px rgba(60,30,8,.55)}
+.zk-freq-strip::after{content:'';position:absolute;top:0;bottom:0;left:50%;width:2px;background:#c94f3d;box-shadow:0 0 6px rgba(201,79,61,.8);transform:translateX(-1px)}
+.zk-freq-strip span{position:absolute;bottom:2px;font-size:9px;color:rgba(255,196,107,.55);font-family:ui-monospace,Consolas,monospace}
+.zk-freq-min{left:5px}.zk-freq-max{right:5px}
+.zk-dial{position:relative;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#f6e7c6,#c99d60 58%,#7d5a2a 92%);box-shadow:0 4px 10px rgba(60,30,8,.5),inset 0 1px 1px rgba(255,255,255,.6),inset 0 -3px 6px rgba(90,50,10,.35);flex:none;transition:transform .25s}
+.zk-dial::before{content:'';position:absolute;inset:6px;border-radius:50%;background:repeating-conic-gradient(rgba(255,255,255,.16) 0 9deg,transparent 9deg 18deg)}
+.zk-dial-notch{position:absolute;left:50%;top:6px;transform:translateX(-50%);width:3px;height:12px;border-radius:2px;background:#5c3a18;box-shadow:0 1px 1px rgba(255,255,255,.3)}
+/* ============ 纸带区 ============ */
+.zk-tape-zone{background:rgba(120,75,30,.16);border-radius:12px;padding:8px 8px 6px;box-shadow:inset 0 3px 10px rgba(90,50,10,.4);margin-bottom:10px;flex:1 1 auto;min-height:150px;display:flex;flex-direction:column}
+.zk-tape-slot{height:6px;border-radius:4px;background:#1f1206;box-shadow:inset 0 2px 4px rgba(20,10,0,.7),0 1px 0 rgba(255,255,255,.35);margin-bottom:8px;flex:none}
+.zk-tape-list{flex:1 1 auto;min-height:130px;overflow-y:auto;padding:3px 5px;display:flex;flex-direction:column}
+.zk-tape{position:relative;max-width:86%;padding:7px 9px;margin:5px 0;border-radius:4px;font-size:13px;line-height:1.6;color:#3d3428;background:linear-gradient(#f8f0dd,#f2e6cc);box-shadow:0 2px 7px rgba(0,0,0,.4);word-break:break-word;animation:zktape .3s ease-out}
+.zk-tape-partner{align-self:flex-start;border-bottom-left-radius:2px}
+.zk-tape-user{align-self:flex-end;background:linear-gradient(#fffdf5,#f8f2e2)}
+.zk-tape-sys{align-self:center;max-width:92%;background:transparent;box-shadow:none;padding:3px 8px;font-size:11px;color:#8a6f4d;text-align:center}
+.zk-tape-sys::before,.zk-tape-sys::after{display:none}
+input[type=range]{accent-color:#c07a34}
+.zk-tape::before,.zk-tape::after{content:'';position:absolute;top:3px;bottom:3px;width:6px;background-image:radial-gradient(circle,#14171a 1.6px,transparent 1.8px);background-size:6px 9px;background-repeat:repeat-y}
+.zk-tape::before{left:-5px}.zk-tape::after{right:-5px}
+.zk-tape-head{font-size:10px;color:#8d7d5c;letter-spacing:1px;margin-bottom:5px;padding-bottom:4px;border-bottom:1px dashed rgba(61,52,40,.18)}
+.zk-tape-text{white-space:pre-wrap}
+.zk-caret{animation:zkblink 1s steps(1) infinite}
+.zk-tape-sig{border:1px solid rgba(212,175,55,.6);box-shadow:0 2px 9px rgba(212,175,55,.25),0 2px 7px rgba(0,0,0,.4)}
+.zk-tape-sig-badge{position:absolute;top:-8px;right:-6px;font-size:15px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));z-index:2}
+@keyframes zktape{from{opacity:0}to{opacity:1}}
+@keyframes zkblink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.zk-empty-hint{display:none;margin:8px 4px 2px;padding:9px 11px;border-radius:8px;background:rgba(240,180,90,.12);border:1px dashed rgba(200,140,60,.45);color:#b98a4e;font-size:12px;line-height:1.7}
+.zk-empty-hint button{margin-left:8px;background:rgba(240,180,90,.2);color:#a06a24;border:1px solid rgba(200,140,60,.5);border-radius:6px;padding:2px 10px;font-size:12px}
+/* ============ 发报区 ============ */
+.zk-key-zone{display:flex;gap:10px;align-items:stretch;flex:none}
+.zk-input{flex:1;min-width:0;background:#fffaf0;border:1.5px solid #d9c096;border-radius:12px;color:#4a3418;font-size:14px;padding:8px 10px;resize:none;height:44px;font-family:inherit;outline:none;box-sizing:border-box;box-shadow:inset 0 2px 6px rgba(120,70,20,.15)}
+.zk-input:focus{border-color:#c98d3f;box-shadow:inset 0 2px 6px rgba(120,70,20,.15),0 0 0 3px rgba(224,160,78,.18)}
+.zk-input::placeholder{color:#b39b70}
+.zk-key-wrap{display:flex;flex-direction:column;align-items:center;gap:5px;flex:none}
+.zk-key{width:54px;height:54px;border-radius:50%;border:4px solid #5c2418;background:radial-gradient(circle at 34% 30%,#e8907a,#c0563f 55%,#8a3322 90%);box-shadow:0 4px 0 #3a150c,0 7px 12px rgba(60,30,8,.45),inset 0 -5px 8px rgba(60,20,10,.3),inset 0 3px 7px rgba(255,255,255,.3);cursor:pointer;position:relative}
+.zk-key::after{content:'';position:absolute;left:14%;top:10%;right:14%;height:26%;border-radius:50%;background:linear-gradient(rgba(255,255,255,.45),rgba(255,255,255,.05));filter:blur(1px)}
+.zk-key:active{transform:translateY(3px);box-shadow:0 1px 0 #3a150c,0 3px 8px rgba(60,30,8,.45),inset 0 -5px 8px rgba(60,20,10,.3)}
+.zk-key-label{font-size:9px;color:#a5825a;letter-spacing:3px}
+.zk-subbtns{display:flex;justify-content:center;gap:8px;margin-top:10px;flex:none}
+.zk-subbtn{background:linear-gradient(#ecd6ad,#d2b183);border:1px solid #b08a55;color:#5c3d1c;font-size:11px;letter-spacing:2px;padding:5px 12px;border-radius:8px;box-shadow:0 2px 4px rgba(90,50,10,.3),inset 0 1px 0 rgba(255,255,255,.5)}
+.zk-subbtn:active{transform:translateY(1px)}
+.zk-wood{height:12px;margin:10px -12px -12px;border-radius:0 0 22px 22px;flex:none;background-image:repeating-linear-gradient(0deg,rgba(60,30,8,.16) 0 2px,transparent 2px 8px),linear-gradient(90deg,#8a5f2e,#a9793f 25%,#8a5f2e 50%,#b07e42 75%,#8a5f2e);box-shadow:0 6px 12px rgba(60,30,8,.4)}
+/* ============ 浮层页 ============ */
+.zk-page{position:fixed;inset:0;z-index:80;background:radial-gradient(120% 120% at 50% 0%,#f7ecd6 0%,#ecd8b8 55%,#dcc39b 100%);display:none;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+.zk-page.on{display:flex}
+.zk-card{width:100%;max-width:360px;background:rgba(255,251,242,.94);border:1px solid rgba(190,140,70,.35);border-radius:18px;padding:22px 20px;box-shadow:0 16px 50px rgba(90,50,10,.35)}
+.zk-card-title{color:#8a5a24;font-size:16px;letter-spacing:3px;text-align:center;margin-bottom:14px;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+.zk-label{display:block;font-size:12px;color:#a07848;margin:12px 0 6px;letter-spacing:2px}
+.zk-in{width:100%;box-sizing:border-box;background:#fffdf6;border:1.5px solid #dcc39a;border-radius:10px;color:#4a3418;font-size:15px;padding:10px 12px;outline:none;font-family:inherit}
+.zk-in:focus{border-color:rgba(200,140,60,.6)}
+.zk-in:disabled{opacity:.5}
+.zk-btn-main{display:block;width:100%;margin-top:18px;height:46px;border:none;border-radius:10px;background:linear-gradient(#e8a860,#c07a34);color:#fff8ea;font-size:15px;letter-spacing:4px;text-shadow:0 1px 2px rgba(90,50,10,.4);box-shadow:0 4px 10px rgba(90,50,10,.35),inset 0 1px 0 rgba(255,255,255,.35)}
+.zk-btn-main:active{transform:translateY(1px)}
+.zk-btn-main:disabled{opacity:.5}
+.zk-btn-ghost{background:transparent;border:1px solid rgba(200,140,60,.4);color:#a06a24;border-radius:8px;padding:6px 14px;font-size:13px;margin-bottom:12px}
+.zk-tune-freq{text-align:center;font-size:44px;font-family:ui-monospace,Consolas,monospace;color:#c07a34;text-shadow:0 0 14px rgba(224,160,78,.45);margin:10px 0 2px;letter-spacing:3px}
+.zk-tune-status{text-align:center;font-size:12px;color:#a07848;min-height:18px;margin-top:6px;letter-spacing:2px}
+.zk-cards-count{font-size:11px;color:#a08050;letter-spacing:1px;flex:none}
+.zk-cards-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.zk-cards-toolbar{display:flex;gap:6px;align-items:center;margin:8px 0}
+.zk-search{flex:1;min-width:0;height:30px;padding:4px 8px;font-size:12px}
+.zk-cards-toolbar .zk-minbtn{padding:6px 9px;font-size:12px;flex:none}
+.zk-tools-wrap{position:relative;flex:none}
+.zk-tools-pop{display:none;position:absolute;right:0;top:calc(100% + 4px);z-index:30;background:#fffaf0;border:1px solid rgba(200,140,60,.35);border-radius:10px;padding:5px 0;min-width:150px;box-shadow:0 8px 24px rgba(90,50,10,.35)}
+.zk-tools-pop.on{display:block}
+.zk-tools-item{padding:8px 14px;font-size:13px;color:#5c4632;cursor:pointer;letter-spacing:1px}
+.zk-tools-item:active{background:rgba(224,168,96,.16)}
+.zk-tools-danger{color:#c05c4a}
+.zk-cards-groups{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 8px}
+.zk-grp-chip{font-size:12px;color:#a06a24;border:1px solid rgba(200,140,60,.4);border-radius:999px;padding:3px 11px;cursor:pointer;background:rgba(224,168,96,.1);letter-spacing:1px}
+.zk-grp-chip.on{background:rgba(224,168,96,.35);color:#5c3a12;border-color:#c07a34}
+.zk-grp-gear{font-size:13px;color:#a08050;border:1px solid rgba(170,130,80,.4);border-radius:999px;padding:3px 9px;cursor:pointer;background:transparent}
+.zk-grp-mgr{display:flex;gap:6px;align-items:center;margin:0 0 8px}
+.zk-grp-list{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;max-height:80px;overflow-y:auto}
+.zk-grp-del{font-size:11px;color:#a08050;border:1px solid rgba(170,130,80,.4);border-radius:999px;padding:3px 10px;cursor:pointer;background:transparent}
+.zk-grp-del:active{color:#c05c4a;border-color:#c05c4a}
+.zk-cards-list{max-height:38vh;min-height:120px;overflow-y:auto;margin-top:2px;display:flex;flex-direction:column;gap:5px}
+.zk-card-row{display:flex;align-items:center;gap:8px;padding:7px 9px;background:#fffaf0;border:1px solid #e4cfae;border-radius:8px;cursor:pointer}
+.zk-card-row.sel{background:rgba(240,180,90,.18);border-color:rgba(200,140,60,.6)}
+.zk-card-chk{font-size:14px;color:#c07a34;flex:none;width:16px;text-align:center}
+.zk-card-row.sel .zk-card-chk{color:#5c3a12}
+.zk-card-txt{font-size:13px;color:#4a3418;flex:1;min-width:0;word-break:break-all;line-height:1.5}
+.zk-card-grp{flex:none;font-size:10px;color:#a08050;border:1px solid rgba(170,130,80,.35);border-radius:999px;padding:1px 8px;letter-spacing:1px;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zk-cards-addbar{display:flex;gap:6px;align-items:center;margin-top:10px}
+.zk-cards-addbar .zk-minbtn{padding:8px 14px}
+.zk-cards-ta{width:100%;box-sizing:border-box;height:30vh;min-height:140px;background:#fffdf6;border:1.5px solid #dcc39a;border-radius:10px;color:#4a3418;font-size:14px;line-height:1.7;padding:10px 12px;resize:none;outline:none;font-family:inherit}
+.zk-cards-empty{font-size:12px;color:#a08050;padding:14px 4px;text-align:center;border:1px dashed rgba(200,140,60,.3);border-radius:8px}
+.zk-row{display:flex;gap:10px;align-items:center;margin-top:14px}
+.zk-row .zk-in{flex:1}
+.zk-minbtn{flex:none;background:rgba(224,168,96,.14);border:1px solid rgba(200,140,60,.4);color:#a06a24;border-radius:8px;padding:9px 14px;font-size:13px}
+.zk-minbtn:active{transform:translateY(1px)}
+.zk-sig-opts{display:flex;flex-direction:column;gap:10px}
+.zk-sig-in{transition:border-color .15s,box-shadow .15s,background .15s}
+.zk-sig-in.hot{border-color:#e0a04e;box-shadow:0 0 10px rgba(224,160,78,.5)}
+.zk-sig-in.win{border-color:#c07a34;box-shadow:0 0 16px rgba(224,160,78,.8);background:#fff3d9}
+.zk-set-avatar{width:64px;height:64px;border-radius:50%;overflow:hidden;background:#f5e6c8;border:1px solid rgba(200,140,60,.4);flex:none;display:flex;align-items:center;justify-content:center;color:#a08050;font-size:10px;text-align:center}
+.zk-set-avatar img{width:100%;height:100%;object-fit:cover}
+.zk-set-tip{font-size:11px;color:#a08050;line-height:1.7;margin-top:8px}
+.zk-danger{color:#c05c4a;border-color:rgba(192,92,74,.45);background:rgba(192,92,74,.1)}
+.zk-set-ver{text-align:center;font-size:10px;color:#b39b70;margin-top:16px;letter-spacing:2px}
+.zk-swatches{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.zk-swatch{width:30px;height:30px;border-radius:9px;border:2px solid rgba(255,255,255,.5);cursor:pointer;box-shadow:0 2px 5px rgba(90,50,10,.3);padding:0;background-clip:padding-box}
+.zk-swatch.on{border-color:#e0a04e;box-shadow:0 0 0 2px rgba(224,160,78,.5),0 2px 5px rgba(90,50,10,.3)}
+.zk-swatch-default{position:relative;background:#3d2a18}
+.zk-swatch-default::after{content:'';position:absolute;inset:6px;border:2px dashed rgba(255,255,255,.5);border-radius:5px}
+.zk-bgpick{width:38px;height:30px;border:none;border-radius:8px;background:transparent;padding:0;cursor:pointer;flex:none}
+.zk-boot-title{font-size:44px;color:#6b4a2a;letter-spacing:18px;padding-left:18px;text-shadow:0 2px 10px rgba(255,255,255,.4);font-weight:700}
+.zk-boot-sub{font-size:11px;color:#a08050;letter-spacing:5px;margin-top:10px}
+.zk-power-wrap{margin:52px 0 30px}
+.zk-power{width:88px;height:88px;border-radius:50%;border:4px solid #5c3a18;background:radial-gradient(circle at 36% 30%,#f2ddb0,#b58a4e 68%);box-shadow:0 8px 22px rgba(90,50,10,.45),inset 0 2px 2px rgba(255,255,255,.5),inset 0 -4px 8px rgba(90,50,10,.4),0 0 0 10px rgba(224,160,78,.12);cursor:pointer;position:relative}
+.zk-power::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#4a2c10;box-shadow:inset 0 1px 2px rgba(20,10,0,.7)}
+.zk-power:active{transform:translateY(3px)}
+.zk-boot-tip{font-size:12px;color:#a08050;letter-spacing:3px;animation:zklampb 2s ease-in-out infinite}
+.zk-boot-hint{max-width:320px;font-size:10px;color:#b39b70;line-height:1.8;text-align:center;margin-top:18px}
+/* ============ 提示条/红条 ============ */
+.zk-toast{position:fixed;left:50%;bottom:60px;transform:translateX(-50%) translateY(10px);background:rgba(74,44,16,.94);color:#f8ecd4;border:1px solid rgba(240,180,90,.4);padding:9px 16px;border-radius:10px;font-size:13px;letter-spacing:1px;opacity:0;pointer-events:none;transition:all .25s;z-index:120;max-width:80vw;text-align:center}
+.zk-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#zkBootBar{position:fixed;left:8px;right:8px;bottom:30px;z-index:99999999;background:#c0392b;color:#fff;font-size:12px;padding:10px 14px;border-radius:12px;line-height:1.6;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+@media (max-width:380px){
+  .zk-screen{width:118px;height:118px}
+}
+@media (max-height:700px){
+  .zk-vents,.zk-plate-sub{display:none}
+  .zk-plate{margin-bottom:4px}
+  .zk-screen{width:100px;height:100px}
+  .zk-scr-name{font-size:12px}
+  .zk-dial{width:40px;height:40px}
+  .zk-dial-zone{gap:8px;padding:5px 8px}
+  .zk-freq-strip{height:20px}
+  .zk-key{width:48px;height:48px}
+  .zk-input{height:40px}
+  .zk-tape-zone{min-height:90px}
+  .zk-tape-list{min-height:70px}
+}
+</style>
+<script>
+// ============ 保命件(必须放 head 最前:崩溃陷阱+启动守护+版本戳) ============
+// 照搬 Murphy 模式:启动第一个未捕获错误写 zk_boot_err 并显示红条;上次 started@ 无 alive@ 显示橙条
+window.__zkBootDone=false;window.__zkBootErrSaved=false;
+window.ZK_BV='PD1';
+window.__showZKBootBar=function(msg,color){
+  function mk(){
+    try{
+      var b=document.getElementById('zkBootBar');if(b&&b.parentNode)b.parentNode.removeChild(b);
+      var _eb=document.createElement('div');
+      _eb.id='zkBootBar';
+      _eb.style.cssText='position:fixed;left:8px;right:8px;bottom:30px;z-index:99999999;background:'+(color||'#c0392b')+';color:#fff;font-size:12px;padding:10px 14px;border-radius:12px;line-height:1.6;box-shadow:0 4px 16px rgba(0,0,0,0.3)';
+      _eb.textContent=msg;
+      _eb.addEventListener('click',function(){try{localStorage.removeItem('zk_boot_err')}catch(e){}try{localStorage.removeItem('zk_boot_guard')}catch(e){}var bb=document.getElementById('zkBootBar');if(bb&&bb.parentNode)bb.parentNode.removeChild(bb)});
+      (document.body||document.documentElement).appendChild(_eb);
+    }catch(e){}
+  }
+  try{mk()}catch(e){}
+};
+(function(){
+  try{var s=localStorage.getItem('zk_boot_err');if(s)window.__zkLastBootErr=JSON.parse(s)}catch(e){}
+  try{
+    var g=localStorage.getItem('zk_boot_guard');
+    if(g&&String(g).indexOf('started@')===0&&!window.__zkLastBootErr)window.__zkLastBootSilent=true;
+    localStorage.setItem('zk_boot_guard','started@'+Date.now());
+  }catch(e){}
+})();
+window.addEventListener('error',function(e){if(window.__zkBootDone||window.__zkBootErrSaved)return;var m=e&&e.message?(e.message+' @'+(e.lineno||'?')):'';if(!m)return;window.__zkBootErrSaved=true;try{localStorage.setItem('zk_boot_err',JSON.stringify({m:m,t:Date.now()}))}catch(x){}window.__showZKBootBar('⚠️ 启动出错,部分功能可能打不开。错误:'+m+'。点击本提示清除。','#c0392b')});
+window.addEventListener('unhandledrejection',function(e){if(window.__zkBootDone||window.__zkBootErrSaved)return;var r=e&&e.reason,m='Promise异常'+(r&&r.message?': '+r.message:'');if(!m)return;window.__zkBootErrSaved=true;try{localStorage.setItem('zk_boot_err',JSON.stringify({m:m,t:Date.now()}))}catch(x){}window.__showZKBootBar('⚠️ 启动出错,部分功能可能打不开。错误:'+m+'。点击本提示清除。','#c0392b')});
+(function(){
+  var msg=null,color='#c0392b';
+  if(window.__zkLastBootErr&&window.__zkLastBootErr.m)msg='⚠️ 上次启动出错,部分功能可能打不开。错误:'+window.__zkLastBootErr.m+'。点击本提示清除。';
+  else if(window.__zkLastBootSilent){msg='⚠️ 上次启动中途异常中断(无JS错误记录,进程可能被系统杀掉)。点击本提示清除。';color='#e67e22'}
+  if(msg)window.__showZKBootBar(msg,color);
+})();
+setInterval(function(){try{localStorage.setItem('zk_boot_guard','alive@'+Date.now())}catch(e){}},30000);
+// 部署版本戳:每次部署 ZK_BV 与 SW CACHE 同步 +1;旧页面检测到戳不匹配 1.5s 后自愈重载
+window._buildStamp=function(noReload){
+  try{
+    var _bv=window.ZK_BV||'PD1';
+    var _cur=localStorage.getItem('zk_build');
+    localStorage.setItem('zk_build',_bv);
+    if(!noReload&&_cur&&_cur!==_bv)setTimeout(function(){try{location.reload()}catch(e){}},1500);
+  }catch(e){}
+};
+window._buildStamp();
+</script>
+</head>
+<body>
+<!-- ============ 机壳主面板 ============ -->
+<div class="zk-wrap">
+  <div class="zk-screw" style="top:8px;left:8px"></div>
+  <div class="zk-screw" style="top:8px;right:8px"></div>
+  <div class="zk-screw" style="bottom:8px;left:8px"></div>
+  <div class="zk-screw" style="bottom:8px;right:8px"></div>
+  <div class="zk-vents"></div>
+  <div class="zk-plate">
+    <div class="zk-plate-name">频段</div>
+    <div class="zk-plate-sub">字卡传讯机 · ZK-1024</div>
+  </div>
+  <div class="zk-screen-zone">
+    <div class="zk-screen" id="zkScreen">
+      <div class="zk-scr-avatar" id="zkScrAvatar"></div>
+      <div class="zk-scr-name" id="zkScrName">---</div>
+      <div class="zk-scr-freq" id="zkScrFreq">FM ---.-</div>
+      <div class="zk-scr-snow" id="zkScrSnow"></div>
+    </div>
+    <div class="zk-lamps">
+      <div class="zk-lamp-item"><span class="zk-lamp" id="zkLampPower"></span><span class="zk-lamp-label">电源</span></div>
+      <div class="zk-lamp-item"><span class="zk-lamp" id="zkLampRecv"></span><span class="zk-lamp-label">收讯</span></div>
+      <div class="zk-lamp-item"><span class="zk-lamp" id="zkLampSig"></span><span class="zk-lamp-label">暗号</span></div>
+    </div>
+  </div>
+  <div class="zk-dial-zone">
+    <div class="zk-freq-wrap">
+      <div class="zk-freq-label">频率 · FM</div>
+      <div class="zk-freq-strip" id="zkFreqStrip"><span class="zk-freq-min">88</span><span class="zk-freq-max">108</span></div>
+    </div>
+    <div class="zk-dial" id="zkDial"><div class="zk-dial-notch"></div></div>
+  </div>
+  <div class="zk-tape-zone">
+    <div class="zk-tape-slot"></div>
+    <div class="zk-tape-list" id="zkTapeList"></div>
+    <div class="zk-empty-hint" id="zkEmptyHint">字卡库是空的,TA 没有话可说。<button id="zkGoCards">去装字卡 →</button></div>
+  </div>
+  <div class="zk-key-zone">
+    <textarea id="zkInput" class="zk-input" placeholder="写下要发出去的电文……"></textarea>
+    <div class="zk-key-wrap"><button id="zkKeyBtn" class="zk-key" title="发报"></button><span class="zk-key-label">发报</span></div>
+  </div>
+  <div class="zk-subbtns">
+    <button class="zk-subbtn" id="zkBtnCards">字卡</button>
+    <button class="zk-subbtn" id="zkBtnSet">设置</button>
+  </div>
+  <div class="zk-wood"></div>
+</div>
+<!-- ============ 开机页 ============ -->
+<div class="zk-page" id="zkPageBoot">
+  <div class="zk-boot-title">频段</div>
+  <div class="zk-boot-sub">字卡传讯机 · ZK-1024</div>
+  <div class="zk-power-wrap"><button class="zk-power" id="zkPowerBtn" title="开机"></button></div>
+  <div class="zk-boot-tip">按下电源键开机</div>
+  <div class="zk-boot-hint">每次开机都要重新调频、重新对暗号——这就是频段的仪式。字卡库和电文记录存在「打开地址」里,换地址(如 localhost↔127.0.0.1↔双击文件)会读不到,可用设置页的「存档码」搬过来。</div>
+</div>
+<!-- ============ 调频页 ============ -->
+<div class="zk-page" id="zkPageTune">
+  <div class="zk-card">
+    <div class="zk-card-title">调频 · 找到 TA 的频道</div>
+    <label class="zk-label">我的名字</label>
+    <input class="zk-in" id="zkTuneMe" maxlength="12" placeholder="你">
+    <label class="zk-label">TA 的名字</label>
+    <input class="zk-in" id="zkTuneTa" maxlength="12" placeholder="TA">
+    <div class="zk-tune-freq" id="zkTuneFreq">88.0</div>
+    <div class="zk-tune-status" id="zkTuneStatus"></div>
+    <button class="zk-btn-main" id="zkTuneGo">开始调频</button>
+    <div class="zk-set-tip" style="text-align:center">调频成功后,TA 的电文里才会出现名字</div>
+  </div>
+</div>
+<!-- ============ 对暗号页(调频成功后:用户自定义三个候选,TA 挑一个) ============ -->
+<div class="zk-page" id="zkPageSig">
+  <div class="zk-card">
+    <div class="zk-card-title">对个暗号</div>
+    <div class="zk-set-tip" style="margin:6px 0 12px">频道接上了。你写三个候选暗号词,让 TA 挑一个——挑中的就是你们俩的暗号,以后发报带上它,TA 会用专属电文回你。</div>
+    <div class="zk-sig-opts" id="zkSigOpts">
+      <input class="zk-in zk-sig-in" id="zkSigIn0" maxlength="12" placeholder="候选 1">
+      <input class="zk-in zk-sig-in" id="zkSigIn1" maxlength="12" placeholder="候选 2">
+      <input class="zk-in zk-sig-in" id="zkSigIn2" maxlength="12" placeholder="候选 3">
+    </div>
+    <button class="zk-btn-main" id="zkSigGo" style="margin-top:14px">让 TA 来选</button>
+    <button class="zk-btn-ghost" id="zkSigSkip" style="margin-top:14px;margin-bottom:0;width:100%">暂不设暗号</button>
+  </div>
+</div>
+<!-- ============ 字卡库页(回复库模式:底部添加栏+多选批量删除+分组+搜索+批量导入) ============ -->
+<div class="zk-page" id="zkPageCards">
+  <div class="zk-card">
+    <div class="zk-cards-head">
+      <button class="zk-btn-ghost" id="zkCardsBack" style="margin:0">← 返回</button>
+      <div class="zk-card-title" style="margin:0">字卡库</div>
+      <span class="zk-cards-count" id="zkCardsCount">0 条</span>
+    </div>
+    <div class="zk-set-tip" style="margin:8px 0 6px">TA 的回电只会从字卡库抽取(TA 没有内置词库)。空库时 TA 不回应,系统会提示装字卡。</div>
+    <div class="zk-cards-toolbar">
+      <input type="text" class="zk-in zk-search" id="zkCardsSearch" placeholder="搜索…">
+      <button class="zk-minbtn" id="zkCardsSelAll">全选</button>
+      <button class="zk-minbtn" id="zkCardsDelSel">删除选中</button>
+      <div class="zk-tools-wrap">
+        <button class="zk-minbtn" id="zkCardsTools">工具 ▾</button>
+        <div class="zk-tools-pop" id="zkToolsPop">
+          <div class="zk-tools-item" id="zkToolsImport">📥 批量导入</div>
+          <div class="zk-tools-item" id="zkToolsDedup">🧹 去重</div>
+          <div class="zk-tools-item zk-tools-danger" id="zkToolsClear">🗑 清空全部</div>
+        </div>
+      </div>
+    </div>
+    <div class="zk-cards-groups" id="zkCardsGroups"></div>
+    <div class="zk-grp-mgr" id="zkGrpMgr" style="display:none">
+      <input type="text" class="zk-in" id="zkGrpInput" maxlength="8" placeholder="新分组名称" style="flex:1;height:30px;padding:4px 8px;font-size:12px">
+      <button class="zk-minbtn" id="zkGrpAdd">添加</button>
+      <button class="zk-minbtn" id="zkGrpDone">完成</button>
+    </div>
+    <div class="zk-grp-list" id="zkGrpList" style="display:none"></div>
+    <div class="zk-cards-list" id="zkCardsList"></div>
+    <div class="zk-cards-addbar">
+      <input type="text" class="zk-in" id="zkCardAdd" maxlength="60" placeholder="输入一条新字卡…" style="flex:1;min-width:0;height:44px;padding:8px 12px;font-size:15px">
+      <select class="zk-in" id="zkCardGroup" style="flex:none;width:68px;height:30px;padding:0 2px;font-size:11px"></select>
+      <button class="zk-minbtn" id="zkCardImportBtn" title="批量导入" style="padding:8px 10px;font-size:12px">📥 批量</button>
+      <button class="zk-minbtn" id="zkCardAddBtn">添加</button>
+    </div>
+  </div>
+</div>
+<!-- ============ 批量导入页 ============ -->
+<div class="zk-page" id="zkPageImport">
+  <div class="zk-card">
+    <button class="zk-btn-ghost" id="zkImportBack">← 返回</button>
+    <div class="zk-card-title">批量导入</div>
+    <div class="zk-set-tip" style="margin:0 0 10px">每行一条字卡,一次性导入字卡库。重复的自动跳过。</div>
+    <textarea class="zk-cards-ta" id="zkImportText" placeholder="在呢&#10;想你了&#10;今天怎么样"></textarea>
+    <div class="zk-row" style="margin-top:10px">
+      <span style="font-size:12px;color:#9fd8a8;flex:none">导入到分组</span>
+      <select class="zk-in" id="zkImportGroup" style="flex:1;height:34px;padding:0 6px;font-size:13px"></select>
+    </div>
+    <div class="zk-cards-count" id="zkImportCount"></div>
+    <button class="zk-btn-main" id="zkImportGo">导入</button>
+  </div>
+</div>
+<!-- ============ 设置页 ============ -->
+<div class="zk-page" id="zkPageSet">
+  <div class="zk-card">
+    <button class="zk-btn-ghost" id="zkSetBack">← 返回</button>
+    <div class="zk-card-title">设置</div>
+    <label class="zk-label">暗号词(你发报时带上它,TA 的回电会带 ✨ 并更常署名)</label>
+    <div class="zk-row" style="margin-top:6px">
+      <input class="zk-in" id="zkSetSig" maxlength="12" placeholder="留空 = 关闭暗号">
+      <button class="zk-minbtn" id="zkSetSigSave">保存</button>
+    </div>
+    <label class="zk-label">TA 的立绘(会显示在圆屏上)</label>
+    <div class="zk-row" style="margin-top:6px">
+      <div class="zk-set-avatar" id="zkAvatarPrev">未设置</div>
+      <button class="zk-minbtn" id="zkAvatarPick">选择图片</button>
+      <button class="zk-minbtn" id="zkAvatarClear">清除</button>
+      <input type="file" id="zkAvatarUp" accept="image/*" style="display:none">
+    </div>
+    <label class="zk-label">声音</label>
+    <div class="zk-row" style="margin-top:6px">
+      <input type="checkbox" id="zkSetSound" checked>
+      <span style="font-size:13px;color:#9fd8a8">按键 / 摩斯 / 打字声</span>
+    </div>
+    <label class="zk-label">背景颜色</label>
+    <div class="zk-swatches" id="zkBgSwatches"></div>
+    <label class="zk-label">回复设置</label>
+    <div class="zk-set-tip" style="margin:4px 0 8px">TA 的话只来自字卡库(无内置词库)——回复节奏由你调。</div>
+    <div class="zk-row"><span style="flex:1;font-size:13px;color:#4a3418">最短回复延迟</span><input type="range" id="zkRepMin" min="300" max="30000" step="100" style="flex:none;width:44%"><span id="zkRepMinVal" style="flex:none;width:48px;text-align:right;font-size:12px;color:#4a3418">0.6秒</span></div>
+    <div class="zk-row"><span style="flex:1;font-size:13px;color:#4a3418">最长回复延迟</span><input type="range" id="zkRepMax" min="600" max="60000" step="100" style="flex:none;width:44%"><span id="zkRepMaxVal" style="flex:none;width:48px;text-align:right;font-size:12px;color:#4a3418">1.6秒</span></div>
+    <div class="zk-row"><span style="flex:1;font-size:13px;color:#4a3418">每次回复条数</span><select class="zk-in" id="zkRepCount" style="flex:none;width:96px;height:30px;padding:0 4px;font-size:12px"><option value="1">1 条</option><option value="1-2">1-2 条</option><option value="1-3">1-3 条</option><option value="2-3">2-3 条</option></select></div>
+    <div class="zk-row"><span style="flex:1;font-size:13px;color:#4a3418">已读不回概率</span><input type="range" id="zkRepNoReply" min="0" max="100" style="flex:none;width:44%"><span id="zkRepNoReplyVal" style="flex:none;width:48px;text-align:right;font-size:12px;color:#4a3418">0%</span></div>
+    <div class="zk-row">
+      <button class="zk-minbtn" id="zkRetune" style="flex:1">重新调频</button>
+      <button class="zk-minbtn zk-danger" id="zkClearAll" style="flex:1">清空全部数据</button>
+    </div>
+    <div class="zk-row" style="margin-top:16px">
+      <button class="zk-minbtn" id="zkSetCodeOut" style="flex:1">📋 复制存档码</button>
+      <button class="zk-minbtn" id="zkSetCodeIn" style="flex:1">📥 粘贴存档码</button>
+    </div>
+    <div class="zk-set-tip">换地址打开(如 localhost↔127.0.0.1↔双击文件)会读不到存档——用存档码可以整包搬到新地址。</div>
+    <div class="zk-set-ver" id="zkSetVer">版本 PD1</div>
+  </div>
+</div>
+<!-- ============ 存档码页(导出/恢复全量存档,跨地址搬家用) ============ -->
+<div class="zk-page" id="zkPageCode">
+  <div class="zk-card">
+    <button class="zk-btn-ghost" id="zkCodeBack">← 返回</button>
+    <div class="zk-card-title" id="zkCodeTitle">存档码</div>
+    <div class="zk-set-tip" id="zkCodeTip" style="margin:0 0 10px"></div>
+    <textarea class="zk-cards-ta" id="zkCodeText" style="height:24vh;min-height:110px"></textarea>
+    <button class="zk-btn-main" id="zkCodeGo">恢复存档</button>
+  </div>
+</div>
+<div class="zk-toast" id="zkToast"></div>
+<script>
+(function(){
+'use strict';
+// ============ 工具 ============
+function $(id){return document.getElementById(id)}
+function EH(s){var d=document.createElement('div');d.textContent=String(s==null?'':s);return d.innerHTML}
+function zkGet(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
+function zkSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){window.__showZKBootBar&&window.__showZKBootBar('⚠️ 存储失败(可能空间满),数据可能无法保存。','#c0392b');return false}}
+var __zkToastT=null;
+function zkToast(t){
+  var e=$('zkToast');if(!e)return;
+  e.textContent=t;e.classList.add('on');
+  clearTimeout(__zkToastT);__zkToastT=setTimeout(function(){e.classList.remove('on')},2200);
+}
+// ============ 全局状态 ============
+var PAIR=null,SIG='',CARDS=[],GROUPS=['日常','甜言蜜语','关心','调皮','晚安','早安','其他'],CARDS_SEL=[],CARDS_FILTER='all',CARDS_SEARCH='',SET={sound:1,typeSpeed:1,repMin:600,repMax:1600,repCount:'1',noReply:0},LASTPICKS=[],MESSAGES=[],AVATAR='';
+function zkLoadAll(){
+  PAIR=zkGet('zk_pair')||null;
+  SIG=zkGet('zk_sig')||'';
+  CARDS=zkGet('zk_cards')||[];
+  if(!Array.isArray(CARDS))CARDS=[];
+  // 回复库模式:条目={text,group};旧版纯字符串自动归一化
+  for(var ci=0;ci<CARDS.length;ci++){if(typeof CARDS[ci]==='string')CARDS[ci]={text:CARDS[ci],group:'其他'}}
+  var g=zkGet('zk_cards_groups');
+  if(Array.isArray(g)&&g.length)GROUPS=g;
+  SET=zkGet('zk_set')||{sound:1,typeSpeed:1};
+  if(typeof SET!=='object'||!SET)SET={sound:1,typeSpeed:1};
+  if(!SET.bg)SET.bg='';
+  // 回复设置默认值(Murphy 模式:延迟区间/条数/已读不回),旧存档缺字段补默认
+  if(!SET.repMin)SET.repMin=600;
+  if(!SET.repMax)SET.repMax=1600;
+  if(!SET.repCount)SET.repCount='1';
+  if(!SET.noReply)SET.noReply=0;
+  LASTPICKS=zkGet('zk_lastPicks')||[];
+  if(!Array.isArray(LASTPICKS))LASTPICKS=[];
+  MESSAGES=zkGet('zk_msgs')||[];
+  if(!Array.isArray(MESSAGES))MESSAGES=[];
+  AVATAR=zkGet('zk_avatar')||'';
+}
+// ============ 概率常量 ============
+// 用户要求:不给 TA 任何内置词库或预设回复——TA 的话只来自字卡库,这里只留概率参数
+var ZK_PROB={sigMark:0.10,sigHitMark:0.75,nameHit:0.25,nameHitOnSig:0.75,recentN:8};
+function _sigHit(text){if(!text||!SIG)return false;var w=String(SIG).trim();if(!w)return false;return text.indexOf(w)>=0}
+function fmtFreq(f){return 'FM '+(Number(f)||0).toFixed(1)}
+// ============ 页面/灯具 ============
+function zkPage(name){
+  var pages=['boot','tune','sig','cards','set','import','code'];
+  for(var i=0;i<pages.length;i++){var p=$('zkPage'+pages[i].charAt(0).toUpperCase()+pages[i].slice(1));if(p)p.classList.remove('on')}
+  if(name&&name!=='main'){var q=$('zkPage'+name.charAt(0).toUpperCase()+name.slice(1));if(q)q.classList.add('on')}
+}
+function lamp(id,st){
+  var e=$(id);if(!e)return;
+  e.classList.remove('on');e.classList.remove('blink');
+  if(st)e.classList.add(st);
+}
+// ============ 屏幕/立绘 ============
+function zkRenderAvatar(){
+  var a=$('zkScrAvatar');
+  if(AVATAR){a.innerHTML='<img src="'+AVATAR+'" alt="">'}else{a.innerHTML=''}
+}
+function zkRenderAvatarPrev(){
+  var p=$('zkAvatarPrev');
+  if(AVATAR){p.innerHTML='<img src="'+AVATAR+'" alt="">'}else{p.innerHTML='未设置'}
+}
+function zkFreqUI(f){
+  var pct=Math.max(0,Math.min(1,((Number(f)||88)-88)/20));
+  try{$('zkFreqStrip').style.backgroundPosition=(pct*100)+'% 0'}catch(e){}
+  try{$('zkDial').style.transform='rotate('+Math.round(pct*270-135)+'deg)'}catch(e){}
+}
+// ============ 背景颜色(自定义) ============
+var ZK_BG_PRESETS=['#3d2a18','#20150d','#33231a','#4a3520','#2a1a24','#1d2a20','#402a1a'];
+function zkShade(hex,k){ // k>=0 向白混; k<0 向黑压
+  var h=String(hex).replace('#','');
+  if(h.length===3)h=h.charAt(0)+h.charAt(0)+h.charAt(1)+h.charAt(1)+h.charAt(2)+h.charAt(2);
+  var r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);
+  function m(c){var v=(k>=0)?(c+(255-c)*k):(c*(1+k));return Math.max(0,Math.min(255,Math.round(v)))}
+  return 'rgb('+m(r)+','+m(g)+','+m(b)+')';
+}
+function zkApplyBg(){
+  var bg=SET.bg||'';
+  try{document.body.style.background=bg?('radial-gradient(120% 90% at 50% 10%, '+zkShade(bg,0.32)+' 0%, '+zkShade(bg,-0.5)+' 55%, #0b0806 100%)'):''}catch(e){}
+  var ps=document.querySelectorAll('.zk-page');
+  for(var i=0;i<ps.length;i++){try{ps[i].style.background=bg?('radial-gradient(120% 120% at 50% 0%, '+zkShade(bg,0.22)+' 0%, '+zkShade(bg,-0.55)+' 55%, #060806 100%)'):''}catch(e){}}
+  var sw=document.querySelectorAll('.zk-swatch');
+  for(var j=0;j<sw.length;j++){
+    var on=(sw[j].getAttribute('data-bg')===bg);
+    if(on){sw[j].classList.add('on')}else{sw[j].classList.remove('on')}
+  }
+}
+function zkBgRender(){
+  var box=$('zkBgSwatches');if(!box)return;
+  var h='<button class="zk-swatch zk-swatch-default" data-bg="" title="默认"></button>';
+  for(var i=0;i<ZK_BG_PRESETS.length;i++){h+='<button class="zk-swatch" data-bg="'+ZK_BG_PRESETS[i]+'" style="background:'+ZK_BG_PRESETS[i]+'" title=""></button>'}
+  h+='<input type="color" class="zk-bgpick" id="zkBgPick" value="'+(SET.bg||'#241a12')+'" title="自定义颜色">';
+  box.innerHTML=h;
+  zkApplyBg();
+}
+// ============ 音效(WebAudio 全合成,零音频文件) ============
+var zkAudio={
+  ctx:null,
+  init:function(){
+    try{
+      if(!this.ctx){var AC=window.AudioContext||window.webkitAudioContext;if(AC)this.ctx=new AC()}
+      if(this.ctx&&this.ctx.state==='suspended'){var p=this.ctx.resume();if(p&&p.catch)p.catch(function(){})}
+    }catch(e){}
+  }
+};
+function zkTone(f,dur,type,vol,slideTo){
+  if(SET.sound===0)return;
+  zkAudio.init();if(!zkAudio.ctx)return;
+  try{
+    var t=zkAudio.ctx.currentTime;
+    var o=zkAudio.ctx.createOscillator();o.type=type||'sine';
+    o.frequency.setValueAtTime(f,t);
+    if(slideTo)o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);
+    var g=zkAudio.ctx.createGain();
+    g.gain.setValueAtTime(vol||0.15,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    o.connect(g);g.connect(zkAudio.ctx.destination);
+    o.start(t);o.stop(t+dur+0.03);
+  }catch(e){}
+}
+var zkSfx={
+  click:function(){zkTone(2000,0.03,'square',0.08)},
+  key:function(){zkTone(180,0.06,'square',0.12);zkTone(90,0.07,'sine',0.1)},
+  tick:function(){zkTone(1400,0.015,'square',0.03)},
+  dit:function(){zkTone(700,0.08,'sine',0.12)},
+  dah:function(){zkTone(700,0.24,'sine',0.12)},
+  recv:function(){for(var i=0;i<3;i++){(function(k){setTimeout(function(){zkTone(700,0.08,'sine',0.12)},k*140)})(i)}},
+  tune:function(){
+    if(SET.sound===0)return;
+    zkAudio.init();if(!zkAudio.ctx)return;
+    try{
+      var dur=3,buf=zkAudio.ctx.createBuffer(1,zkAudio.ctx.sampleRate*dur,zkAudio.ctx.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+      var src=zkAudio.ctx.createBufferSource();src.buffer=buf;src.loop=true;
+      var bp=zkAudio.ctx.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.2;
+      var t=zkAudio.ctx.currentTime;
+      bp.frequency.setValueAtTime(400,t);
+      bp.frequency.exponentialRampToValueAtTime(3000,t+dur);
+      var g=zkAudio.ctx.createGain();
+      g.gain.setValueAtTime(0.1,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      src.connect(bp);bp.connect(g);g.connect(zkAudio.ctx.destination);
+      src.start(t);src.stop(t+dur+0.05);
+    }catch(e){}
+  },
+  lock:function(){zkTone(900,0.25,'sine',0.15,1400);setTimeout(function(){zkTone(1400,0.3,'sine',0.15)},200)}
+};
+// 摩斯码闪烁:随机序列驱动收讯灯+短音
+function zkMorseFlash(cb){
+  var n=6+Math.floor(Math.random()*9),seq=[];
+  for(var i=0;i<n;i++)seq.push(Math.random()<0.6?'dit':'dah');
+  function go(i){
+    if(i>=seq.length){lamp('zkLampRecv','');if(cb)cb();return}
+    var on=seq[i]==='dit'?80:240;
+    lamp('zkLampRecv','on');
+    if(SET.sound!==0)zkSfx[seq[i]]();
+    setTimeout(function(){lamp('zkLampRecv','');setTimeout(function(){go(i+1)},60)},on);
+  }
+  go(0);
+}
+// ============ 消息存储 ============
+function zkSaveMsgs(){
+  if(MESSAGES.length>300)MESSAGES=MESSAGES.slice(-300);
+  zkSet('zk_msgs',MESSAGES);
+}
+function zkSavePicks(){
+  if(LASTPICKS.length>ZK_PROB.recentN)LASTPICKS=LASTPICKS.slice(-ZK_PROB.recentN);
+  zkSet('zk_lastPicks',LASTPICKS);
+}
+// ============ 纸带渲染 ============
+function zkTapeAdd(m,animate){
+  var list=$('zkTapeList');if(!list)return null;
+  var el=document.createElement('div');
+  var who=m.sender==='user'?'user':(m.sender==='sys'?'sys':'partner');
+  el.className='zk-tape zk-tape-'+who+(m.sig?' zk-tape-sig':'');
+  el.style.transform='rotate('+(Math.random()*0.8-0.4).toFixed(2)+'deg)';
+  var html='';
+  if(m.nameHit&&PAIR&&PAIR.ta)html+='<div class="zk-tape-head">'+EH(fmtFreq(PAIR.freq)+' · '+PAIR.ta)+'</div>';
+  html+='<div class="zk-tape-text"></div>';
+  if(m.sig)html+='<span class="zk-tape-sig-badge">✨</span>';
+  el.innerHTML=html;
+  list.appendChild(el);
+  list.scrollTop=list.scrollHeight;
+  var tx=el.querySelector('.zk-tape-text');
+  if(m.sender==='partner'&&animate){zkTypewriter(tx,m.text)}else{tx.textContent=m.text}
+  return el;
+}
+function zkTypewriter(el,text,cb){
+  var i=0;el.textContent='';el.classList.add('typing');
+  var caret=document.createElement('span');caret.className='zk-caret';caret.textContent='▍';el.appendChild(caret);
+  function step(){
+    if(i>=text.length){
+      if(caret.parentNode)caret.parentNode.removeChild(caret);
+      el.classList.remove('typing');
+      if(cb)cb();return;
+    }
+    el.insertBefore(document.createTextNode(text.charAt(i)),caret);i++;
+    if(SET.sound!==0)zkSfx.tick();
+    setTimeout(step,SET.typeSpeed?(30+Math.random()*40):0);
+  }
+  step();
+}
+function zkRenderMsgs(){
+  var list=$('zkTapeList');if(!list)return;
+  list.innerHTML='';
+  for(var i=0;i<MESSAGES.length;i++)zkTapeAdd(MESSAGES[i],false);
+}
+function zkHintEmpty(){
+  var h=$('zkEmptyHint');if(!h)return;
+  h.style.display=(PAIR&&!CARDS.length)?'block':'none';
+}
+// ============ 调频对名字 ============
+var __zkTuning=false;
+function zkTuneOpen(statusText){
+  if(PAIR){$('zkTuneMe').value=PAIR.me;$('zkTuneTa').value=PAIR.ta}
+  $('zkTuneFreq').textContent='88.0';
+  $('zkTuneStatus').textContent=statusText||'';
+  $('zkTuneGo').disabled=false;
+  $('zkTuneMe').disabled=false;$('zkTuneTa').disabled=false;
+  zkPage('tune');
+}
+function zkTuneStart(){
+  if(__zkTuning)return;
+  var me=($('zkTuneMe').value||'').trim()||'你';
+  var ta=($('zkTuneTa').value||'').trim()||'TA';
+  __zkTuning=true;
+  $('zkTuneGo').disabled=true;
+  $('zkTuneMe').disabled=true;$('zkTuneTa').disabled=true;
+  $('zkTuneStatus').textContent='正在搜索频道……';
+  zkAudio.init();zkSfx.tune();
+  try{$('zkScrSnow').classList.add('on')}catch(e){}
+  var f=88,timer=null;
+  (function walk(){
+    f=Math.max(88,Math.min(108,f+(Math.random()*6-3)));
+    $('zkTuneFreq').textContent=f.toFixed(1);
+    zkFreqUI(f);
+    timer=setTimeout(walk,80);
+  })();
+  var dur=2500+Math.random()*1500;
+  setTimeout(function(){
+    clearTimeout(timer);
+    zkTuneLock(me,ta);
+  },dur);
+}
+function zkTuneLock(me,ta){
+  __zkTuning=false;
+  var freq=Math.round((88+Math.random()*20)*10)/10;
+  PAIR={me:me,ta:ta,freq:freq,t:Date.now()};
+  zkSet('zk_pair',PAIR);
+  zkSfx.lock();
+  try{$('zkScrSnow').classList.remove('on')}catch(e){}
+  $('zkTuneFreq').textContent=freq.toFixed(1);
+  $('zkTuneGo').disabled=false;
+  $('zkTuneMe').disabled=false;$('zkTuneTa').disabled=false;
+  $('zkScrName').textContent=ta;
+  $('zkScrFreq').textContent=fmtFreq(freq);
+  zkFreqUI(freq);
+  zkRenderAvatar();
+  try{$('zkScreen').classList.add('lit')}catch(e){}
+  lamp('zkLampPower','on');
+  // 每次调频成功都进对暗号页(不管之前有没有暗号——每次进入都是一次新仪式)
+  zkSigOpen();
+}
+// ============ 对暗号(调频成功后:用户自定义三个候选,TA 挑一个) ============
+var __zkSigScan=false;
+function zkSigOpen(){
+  // 三个候选完全由用户自定义,不预填任何内置词(用户要求:不给 TA 预设词库)
+  for(var k=0;k<3;k++){
+    var el=$('zkSigIn'+k);
+    el.value='';
+    el.classList.remove('hot');el.classList.remove('win');
+  }
+  zkPage('sig');
+}
+function zkSigGo(){
+  if(__zkSigScan)return;
+  // 收集非空候选(至少写一个)
+  var items=[];
+  for(var k=0;k<3;k++){
+    var v=($('zkSigIn'+k).value||'').trim();
+    if(v)items.push({el:$('zkSigIn'+k),val:v});
+  }
+  if(!items.length){zkToast('先写至少一个候选暗号词');return}
+  // 扫描动画:候选轮流点亮、渐慢,像 TA 在犹豫
+  zkAudio.init();
+  __zkSigScan=true;
+  var step=0,delay=90;
+  (function scan(){
+    for(var q=0;q<items.length;q++)items[q].el.classList.remove('hot');
+    items[step%items.length].el.classList.add('hot');
+    zkSfx.tick();
+    step++;
+    delay=Math.min(delay+26,360);
+    if(step<13){setTimeout(scan,delay)}
+    else{__zkSigScan=false;zkSigTaPick(items)}
+  })();
+}
+function zkSigTaPick(items){
+  // TA 落定:随机挑一个,点亮 + 写库 + 确认电文
+  var it=items[Math.floor(Math.random()*items.length)];
+  for(var q=0;q<items.length;q++)items[q].el.classList.remove('hot');
+  it.el.classList.add('win');
+  zkSfx.lock();
+  SIG=it.val;zkSet('zk_sig',it.val);
+  zkToast('TA 选了「'+it.val+'」——这就是你们的暗号 ✓');
+  setTimeout(zkSigDone,750);
+}
+function zkSigSkip(){
+  zkToast(SIG?'保持原来的暗号不变':'还没定暗号,以后在设置里随时可以设');
+  zkSigDone();
+}
+function zkSigDone(){
+  zkPage('main');
+  zkMorseFlash();
+  // 不吐任何预设电文:TA 的话只来自字卡库;暗号落定由 zkSigTaPick 的 toast 传达
+  zkHintEmpty();
+}
+// ============ 发报收讯 ============
+var __zkPoolEmptyWarned=false;
+function zkSend(text){
+  if(!PAIR)return;
+  var tx=(text!==undefined?String(text):($('zkInput').value||'')).trim();
+  if(!tx)return;
+  zkAudio.init();zkSfx.key();
+  var um={id:'m'+Date.now()+Math.floor(Math.random()*1e4),sender:'user',text:tx,t:Date.now()};
+  MESSAGES.push(um);zkSaveMsgs();
+  zkTapeAdd(um,true);
+  if(text===undefined)$('zkInput').value='';
+  lamp('zkLampRecv','blink');
+  // 回复设置(Murphy 模式):延迟区间、每次条数、已读不回概率
+  var dMin=Math.max(0,SET.repMin||0),dMax=Math.max(dMin,SET.repMax||0);
+  var delay=dMin+Math.random()*Math.max(1,dMax-dMin);
+  setTimeout(function(){
+    zkSfx.recv();
+    lamp('zkLampRecv','on');
+    setTimeout(function(){lamp('zkLampRecv','')},600);
+    // TA 的话只来自字卡库(用户要求:不给 TA 任何内置词库/预设回复);空池=TA 不回应,系统提示装字卡
+    if(!zkPoolTexts().length){
+      if(!__zkPoolEmptyWarned){
+        __zkPoolEmptyWarned=true;
+        var sm={id:'m'+Date.now()+Math.floor(Math.random()*1e4),sender:'sys',text:'（字卡库是空的——TA 没有回应。TA 的话都装在那里,去装字卡吧）',t:Date.now()};
+        MESSAGES.push(sm);zkSaveMsgs();
+        zkTapeAdd(sm,false);
+      }
+      zkToast('TA 没有回应:字卡库是空的,去装字卡吧');
+      zkHintEmpty();
+      return;
+    }
+    // 已读不回:TA 听到了,但这次不回
+    if(Math.random()*100<SET.noReply){zkHintEmpty();return}
+    // 每次回复条数(多条时错开 300ms 依次吐)
+    var cnt=zkRepRollCount(),stagger=0;
+    for(var n=0;n<cnt;n++){
+      var r=gZKReply(tx);
+      var pm={id:'m'+Date.now()+Math.floor(Math.random()*1e4),sender:'partner',text:r.text,t:Date.now(),sig:r.sig,nameHit:r.nameHit};
+      (function(pm2){
+        setTimeout(function(){
+          MESSAGES.push(pm2);zkSaveMsgs();
+          var el=zkTapeAdd(pm2,true);
+          if(el)zkTypewriter(el.querySelector('.zk-tape-text'),pm2.text);
+          if(pm2.sig){lamp('zkLampSig','on');setTimeout(function(){lamp('zkLampSig','')},3000)}
+          zkHintEmpty();
+        },stagger);
+      })(pm);
+      stagger+=300;
+    }
+  },delay);
+}
+function zkRepRollCount(){
+  var c=String(SET.repCount||'1');
+  if(c==='1-2')return 1+Math.floor(Math.random()*2);
+  if(c==='1-3')return 1+Math.floor(Math.random()*3);
+  if(c==='2-3')return 2+Math.floor(Math.random()*2);
+  return 1;
+}
+function zkPoolTexts(){
+  var out=[];
+  for(var ci=0;ci<CARDS.length;ci++){if(CARDS[ci]&&CARDS[ci].text)out.push(CARDS[ci].text)}
+  return out;
+}
+// 抽卡:TA 的话只来自字卡库(空池返回 null);最近8条去重;暗号命中→✨+署名带名概率提升(测试可经 __ZK.PROB 注入)
+function gZKReply(userText){
+  var texts=zkPoolTexts();
+  if(!texts.length)return null;
+  var cand=[];
+  for(var i=0;i<texts.length;i++){if(LASTPICKS.indexOf(texts[i])===-1)cand.push(texts[i])}
+  if(!cand.length)cand=texts.slice();
+  var t=cand[Math.floor(Math.random()*cand.length)];
+  LASTPICKS.push(t);zkSavePicks();
+  var sigHit=_sigHit(userText);
+  var sig=sigHit?(Math.random()<ZK_PROB.sigHitMark):(Math.random()<ZK_PROB.sigMark);
+  var nameHit=sigHit?(Math.random()<ZK_PROB.nameHitOnSig):(Math.random()<ZK_PROB.nameHit);
+  return {text:t,sig:sig,nameHit:nameHit};
+}
+// ============ 字卡库页(Murphy 主回复库模式:底部添加栏+多选批量删除+分组+搜索+批量导入) ============
+function zkCardsFiltered(){
+  var q=(CARDS_SEARCH||'').trim();
+  var out=[];
+  for(var i=0;i<CARDS.length;i++){
+    var c=CARDS[i];
+    if(!c||!c.text)continue;
+    if(CARDS_FILTER!=='all'&&c.group!==CARDS_FILTER)continue;
+    if(q&&c.text.indexOf(q)===-1)continue;
+    out.push(i);
+  }
+  return out;
+}
+function zkCardsSelCount(){
+  var n=0;
+  for(var s=0;s<CARDS_SEL.length;s++){if(CARDS_SEL[s]<CARDS.length)n++}
+  return n;
+}
+function zkCardsRender(){
+  var list=$('zkCardsList');
+  if(!list)return;
+  var idxs=zkCardsFiltered();
+  var selCount=zkCardsSelCount();
+  if(!idxs.length){
+    list.innerHTML='<div class="zk-cards-empty">'+(CARDS.length?'没有符合条件的字卡':'字卡库为空。在下方添加,或点「工具 → 批量导入」一次导入多条')+'</div>';
+  }else{
+    var rows=[];
+    for(var i=0;i<idxs.length;i++){
+      var j=idxs[i],c=CARDS[j];
+      var on=CARDS_SEL.indexOf(j)!==-1;
+      rows.push('<div class="zk-card-row'+(on?' sel':'')+'" data-i="'+j+'"><span class="zk-card-chk">'+(on?'☑':'☐')+'</span><span class="zk-card-txt">'+EH(c.text)+'</span><span class="zk-card-grp">'+EH(c.group||'其他')+'</span></div>');
+    }
+    list.innerHTML=rows.join('');
+  }
+  $('zkCardsCount').textContent=CARDS.length+' 条'+(selCount?' · 已选 '+selCount:'');
+  var box=$('zkCardsGroups');
+  if(box){
+    var h='<span class="zk-grp-chip'+(CARDS_FILTER==='all'?' on':'')+'" data-g="all">全部</span>';
+    for(var g=0;g<GROUPS.length;g++){h+='<span class="zk-grp-chip'+(CARDS_FILTER===GROUPS[g]?' on':'')+'" data-g="'+EH(GROUPS[g])+'">'+EH(GROUPS[g])+'</span>'}
+    h+='<span class="zk-grp-gear" id="zkGrpGear">⚙ 分组</span>';
+    box.innerHTML=h;
+  }
+  var selg=$('zkCardGroup');
+  if(selg&&selg.options.length!==GROUPS.length){
+    var oh='';
+    for(var k=0;k<GROUPS.length;k++)oh+='<option>'+EH(GROUPS[k])+'</option>';
+    selg.innerHTML=oh;
+  }
+}
+function zkCardsOpen(){
+  CARDS_SEARCH='';CARDS_FILTER='all';CARDS_SEL=[];
+  var s=$('zkCardsSearch');if(s)s.value='';
+  zkToolsPop(false);
+  zkCardsRender();
+  zkPage('cards');
+}
+function zkCardAdd(){
+  var inp=$('zkCardAdd'),sg=$('zkCardGroup');
+  var v=(inp&&inp.value||'').trim();
+  if(!v){zkToast('先输入内容');return}
+  if(v.length>60){zkToast('一条字卡最多 60 字');return}
+  for(var i=0;i<CARDS.length;i++){if(CARDS[i].text===v){zkToast('这条已经在字卡库里了');return}}
+  if(CARDS.length>=200){zkToast('字卡库满了(上限 200)');return}
+  CARDS.push({text:v,group:(sg&&sg.value)||'其他'});
+  zkSet('zk_cards',CARDS);
+  __zkPoolEmptyWarned=false;
+  inp.value='';
+  zkCardsRender();
+  zkHintEmpty();
+  zkToast('已添加 ✓');
+}
+function zkCardsToggle(i){
+  var p=CARDS_SEL.indexOf(i);
+  if(p===-1){CARDS_SEL.push(i)}else{CARDS_SEL.splice(p,1)}
+  zkCardsRender();
+}
+function zkCardsSelAll(){
+  var idxs=zkCardsFiltered();
+  if(zkCardsSelCount()===idxs.length){CARDS_SEL=[]}
+  else{CARDS_SEL=idxs.slice()}
+  zkCardsRender();
+}
+function zkCardsDelSel(){
+  var n=zkCardsSelCount();
+  if(!n){zkToast('先勾选要删除的字卡');return}
+  if(!confirm('删除选中的 '+n+' 条字卡?'))return;
+  CARDS_SEL.sort(function(a,b){return b-a});
+  for(var i=0;i<CARDS_SEL.length;i++){if(CARDS_SEL[i]<CARDS.length)CARDS.splice(CARDS_SEL[i],1)}
+  CARDS_SEL=[];
+  zkSet('zk_cards',CARDS);
+  zkCardsRender();
+  zkHintEmpty();
+  zkToast('已删除 '+n+' 条');
+}
+function zkCardsDedup(){
+  var seen={},removed=0,keep=[];
+  for(var i=0;i<CARDS.length;i++){
+    var t=CARDS[i].text;
+    if(seen[t]){removed++}else{seen[t]=1;keep.push(CARDS[i])}
+  }
+  if(!removed){zkToast('没有重复的字卡');return}
+  CARDS=keep;CARDS_SEL=[];
+  zkSet('zk_cards',CARDS);
+  zkCardsRender();
+  zkToast('去重完成,移除 '+removed+' 条');
+}
+function zkCardsClearAll(){
+  if(!confirm('清空字卡库里的全部 '+CARDS.length+' 条字卡?'))return;
+  CARDS=[];CARDS_SEL=[];
+  zkSet('zk_cards',CARDS);
+  zkCardsRender();
+  zkHintEmpty();
+  zkToast('已清空,TA 没有字卡可说了,去装新的吧');
+}
+function zkToolsPop(show){
+  var p=$('zkToolsPop');
+  if(p){if(show===undefined){p.classList.toggle('on')}else if(show){p.classList.add('on')}else{p.classList.remove('on')}}
+}
+function zkGroupAdd(){
+  var inp=$('zkGrpInput');
+  var v=(inp&&inp.value||'').trim();
+  if(!v){zkToast('先输入分组名');return}
+  if(GROUPS.indexOf(v)!==-1){zkToast('这个分组已经有了');return}
+  GROUPS.push(v);
+  zkSet('zk_cards_groups',GROUPS);
+  inp.value='';
+  zkCardsRender();
+}
+function zkGroupDel(g){
+  var i=GROUPS.indexOf(g);
+  if(i===-1)return;
+  GROUPS.splice(i,1);
+  zkSet('zk_cards_groups',GROUPS);
+  if(CARDS_FILTER===g)CARDS_FILTER='all';
+  zkCardsRender();
+}
+function zkGrpMgrToggle(){
+  var m=$('zkGrpMgr'),l=$('zkGrpList');
+  if(!m||!l)return;
+  var on=m.style.display!=='none';
+  m.style.display=on?'none':'flex';
+  l.style.display=on?'none':'flex';
+  if(!on){
+    var h='';
+    for(var i=0;i<GROUPS.length;i++){h+='<span class="zk-grp-del" data-g="'+EH(GROUPS[i])+'">'+EH(GROUPS[i])+' ✕</span>'}
+    l.innerHTML=h;
+  }
+}
+function zkImportOpen(){
+  zkToolsPop(false);
+  $('zkImportText').value='';
+  $('zkImportCount').textContent='';
+  var sg=$('zkImportGroup');
+  var h='';
+  for(var i=0;i<GROUPS.length;i++){h+='<option value="'+GROUPS[i]+'">'+GROUPS[i]+'</option>'}
+  sg.innerHTML=h;
+  sg.value=GROUPS.indexOf(CARDS_FILTER)!==-1?CARDS_FILTER:'其他';
+  zkPage('import');
+}
+function zkImportGo(){
+  var ta=$('zkImportText');
+  var lines=(ta&&ta.value||'').split('\n');
+  var added=0,skipped=0,seen={};
+  for(var i=0;i<CARDS.length;i++)seen[CARDS[i].text]=1;
+  for(var j=0;j<lines.length;j++){
+    var t=lines[j].trim();
+    if(!t)continue;
+    if(t.length>60){skipped++;continue}
+    if(seen[t]){skipped++;continue}
+    if(CARDS.length>=200){skipped++;continue}
+    seen[t]=1;
+    var g=$('zkImportGroup').value;
+    CARDS.push({text:t,group:GROUPS.indexOf(g)!==-1?g:'其他'});
+    added++;
+  }
+  if(added)zkSet('zk_cards',CARDS);
+  $('zkImportCount').textContent='本次导入 '+added+' 条'+(skipped?' · 跳过 '+skipped:'');
+  ta.value='';
+  if(added){__zkPoolEmptyWarned=false;zkHintEmpty()}
+}
+// ============ 立绘 ============
+function zkAvatarLoad(file){
+  if(!file)return;
+  if(file.size>4*1024*1024){zkToast('图片太大(≤4MB)');return}
+  var rd=new FileReader();
+  rd.onload=function(){
+    var img=new Image();
+    img.onload=function(){
+      try{
+        var m=256,sc=Math.min(1,m/Math.max(img.width,img.height));
+        var w=Math.round(img.width*sc),h=Math.round(img.height*sc);
+        var cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        AVATAR=cv.toDataURL('image/jpeg',0.82);
+        zkSet('zk_avatar',AVATAR);
+        zkRenderAvatar();zkRenderAvatarPrev();
+        zkToast('立绘已保存 ✓');
+      }catch(e){zkToast('图片处理失败')}
+    };
+    img.onerror=function(){zkToast('图片读取失败')};
+    img.src=rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+function zkAvatarClear(){
+  AVATAR='';
+  zkSet('zk_avatar','');
+  zkRenderAvatar();zkRenderAvatarPrev();
+  zkToast('立绘已清除');
+}
+// ============ 设置页 ============
+function zkSetOpen(){
+  $('zkSetSig').value=SIG;
+  $('zkSetSound').checked=(SET.sound!==0);
+  $('zkRepMin').value=SET.repMin;$('zkRepMinVal').textContent=(SET.repMin/1000).toFixed(1)+'秒';
+  $('zkRepMax').value=SET.repMax;$('zkRepMaxVal').textContent=(SET.repMax/1000).toFixed(1)+'秒';
+  $('zkRepCount').value=SET.repCount;
+  $('zkRepNoReply').value=SET.noReply;$('zkRepNoReplyVal').textContent=SET.noReply+'%';
+  zkRenderAvatarPrev();
+  zkBgRender();
+  $('zkSetVer').textContent='版本 '+window.ZK_BV;
+  zkPage('set');
+}
+function zkClearAll(){
+  if(!confirm('确定清空全部数据?字卡、聊天记录、配对都会没掉。'))return;
+  var ks=['zk_pair','zk_sig','zk_cards','zk_msgs','zk_lastPicks','zk_avatar','zk_set'];
+  for(var i=0;i<ks.length;i++){try{localStorage.removeItem(ks[i])}catch(e){}}
+  location.reload();
+}
+// ============ 启动 ============
+function zkBoot(){
+  zkLoadAll();
+  zkApplyBg();
+  if(PAIR){
+    // 有存档:屏幕先点亮、纸带就位(藏在开机页后面),但仍从开机页开始——每次进入都要调频+对暗号(仪式感)
+    $('zkScrName').textContent=PAIR.ta;
+    $('zkScrFreq').textContent=fmtFreq(PAIR.freq);
+    zkFreqUI(PAIR.freq);
+    zkRenderAvatar();
+    try{$('zkScreen').classList.add('lit')}catch(e){}
+    lamp('zkLampPower','on');
+    zkRenderMsgs();
+    zkHintEmpty();
+  }
+  zkPage('boot');
+  window.__zkBootDone=true;
+}
+// ============ 存档码(跨地址搬家:导出/恢复全量存档) ============
+var __zkCodeMode='out';
+function zkB64(s){return btoa(unescape(encodeURIComponent(s)))}
+function zkUnb64(s){return decodeURIComponent(escape(atob(s)))}
+function zkCodeOpen(mode){
+  __zkCodeMode=mode;
+  var t=$('zkCodeText'),go=$('zkCodeGo');
+  if(mode==='out'){
+    var data={v:1,pair:PAIR,sig:SIG,cards:CARDS,groups:GROUPS,msgs:MESSAGES,lastPicks:LASTPICKS,avatar:AVATAR,set:SET};
+    var code=zkB64(JSON.stringify(data));
+    t.value=code;t.readOnly=true;
+    $('zkCodeTitle').textContent='复制存档码';
+    $('zkCodeTip').textContent='这段码就是你的全部存档(配对/暗号/字卡/电文)。换个地址打开频段后,用「粘贴存档码」把它粘回去,就能接着原来的频道。';
+    go.textContent='复制到剪贴板';
+    try{if(navigator.clipboard)navigator.clipboard.writeText(code).catch(function(){})}catch(e){}
+  }else{
+    t.value='';t.readOnly=false;
+    $('zkCodeTitle').textContent='粘贴存档码';
+    $('zkCodeTip').textContent='把之前复制的存档码粘贴进来,点恢复,频段就会回到你原来的频道。';
+    go.textContent='恢复存档';
+  }
+  zkPage('code');
+}
+function zkCodeGo(){
+  var t=$('zkCodeText');
+  if(__zkCodeMode==='out'){
+    t.focus();t.select();
+    try{document.execCommand('copy')}catch(e){}
+    zkToast('已复制存档码 ✓(没复制上就手动全选)');
+    return;
+  }
+  var raw=(t.value||'').trim();
+  if(!raw){zkToast('先把存档码粘贴进来');return}
+  var data=null;
+  try{data=JSON.parse(zkUnb64(raw))}catch(e){}
+  if(!data||data.v!==1){zkToast('存档码格式不对');return}
+  zkSet('zk_pair',data.pair||null);
+  zkSet('zk_sig',data.sig||'');
+  zkSet('zk_cards',data.cards||[]);
+  zkSet('zk_cards_groups',data.groups||GROUPS);
+  zkSet('zk_msgs',data.msgs||[]);
+  zkSet('zk_lastPicks',data.lastPicks||[]);
+  zkSet('zk_avatar',data.avatar||'');
+  zkSet('zk_set',data.set||{sound:1,typeSpeed:1});
+  zkLoadAll();
+  zkApplyBg();
+  zkRenderMsgs();
+  zkRenderAvatar();
+  zkHintEmpty();
+  if(PAIR){
+    $('zkScrName').textContent=PAIR.ta;
+    $('zkScrFreq').textContent=fmtFreq(PAIR.freq);
+    zkFreqUI(PAIR.freq);
+    try{$('zkScreen').classList.add('lit')}catch(e){}
+    lamp('zkLampPower','on');
+    zkPage('main');
+    zkToast('存档恢复成功 ✓ 频道还在');
+  }else{
+    zkPage('boot');
+    zkToast('存档恢复成功 ✓');
+  }
+}
+// ============ 事件绑定 ============
+$('zkPowerBtn').addEventListener('click',function(){zkAudio.init();zkSfx.click();zkTuneOpen()});
+$('zkTuneGo').addEventListener('click',function(){zkAudio.init();zkTuneStart()});
+$('zkKeyBtn').addEventListener('click',function(){zkSend()});
+$('zkInput').addEventListener('keydown',function(e){
+  if(e.keyCode===13&&!e.shiftKey){e.preventDefault();zkSend()}
+});
+$('zkBtnCards').addEventListener('click',zkCardsOpen);
+$('zkCardAddBtn').addEventListener('click',zkCardAdd);
+$('zkCardAdd').addEventListener('keydown',function(e){if(e.keyCode===13){e.preventDefault();zkCardAdd()}});
+$('zkCardsList').addEventListener('click',function(e){var r=e.target&&e.target.closest?e.target.closest('.zk-card-row'):null;if(!r)return;var i=parseInt(r.getAttribute('data-i'));if(isNaN(i))return;zkCardsToggle(i)});
+$('zkCardsSelAll').addEventListener('click',zkCardsSelAll);
+$('zkCardsDelSel').addEventListener('click',zkCardsDelSel);
+$('zkCardsTools').addEventListener('click',function(){zkToolsPop()});
+$('zkToolsImport').addEventListener('click',zkImportOpen);
+$('zkToolsDedup').addEventListener('click',function(){zkToolsPop(false);zkCardsDedup()});
+$('zkToolsClear').addEventListener('click',function(){zkToolsPop(false);zkCardsClearAll()});
+$('zkCardsSearch').addEventListener('input',function(){CARDS_SEARCH=this.value;zkCardsRender()});
+$('zkCardsGroups').addEventListener('click',function(e){
+  var c=e.target&&e.target.closest?e.target.closest('.zk-grp-chip'):null;
+  if(c){CARDS_FILTER=c.getAttribute('data-g')||'all';CARDS_SEL=[];zkCardsRender();return}
+  var g=e.target&&e.target.closest?e.target.closest('.zk-grp-gear'):null;
+  if(g)zkGrpMgrToggle();
+});
+$('zkGrpAdd').addEventListener('click',zkGroupAdd);
+$('zkGrpDone').addEventListener('click',zkGrpMgrToggle);
+$('zkGrpList').addEventListener('click',function(e){var d=e.target&&e.target.closest?e.target.closest('.zk-grp-del'):null;if(!d)return;zkGroupDel(d.getAttribute('data-g')||'')});
+$('zkImportBack').addEventListener('click',function(){zkPage('cards')});
+$('zkImportGo').addEventListener('click',zkImportGo);
+$('zkCardImportBtn').addEventListener('click',zkImportOpen);
+$('zkCardsBack').addEventListener('click',function(){zkToolsPop(false);zkPage('main')});
+$('zkGoCards').addEventListener('click',zkCardsOpen);
+$('zkSigGo').addEventListener('click',zkSigGo);
+$('zkSigSkip').addEventListener('click',zkSigSkip);
+$('zkBtnSet').addEventListener('click',zkSetOpen);
+$('zkSetBack').addEventListener('click',function(){zkPage('main')});
+$('zkSetSigSave').addEventListener('click',function(){
+  SIG=($('zkSetSig').value||'').trim();
+  zkSet('zk_sig',SIG);
+  zkToast(SIG?'暗号「'+SIG+'」已保存 ✓':'暗号已关闭');
+});
+$('zkAvatarPick').addEventListener('click',function(){$('zkAvatarUp').click()});
+$('zkAvatarUp').addEventListener('change',function(){zkAvatarLoad(this.files&&this.files[0]);this.value=''});
+$('zkAvatarClear').addEventListener('click',zkAvatarClear);
+$('zkSetSound').addEventListener('change',function(){
+  SET.sound=this.checked?1:0;
+  zkSet('zk_set',SET);
+  zkToast(SET.sound?'音效已开启 ✓':'音效已关闭');
+});
+$('zkBgSwatches').addEventListener('click',function(e){
+  var b=e.target&&e.target.closest?e.target.closest('.zk-swatch'):null;
+  if(!b)return;
+  SET.bg=b.getAttribute('data-bg')||'';
+  zkSet('zk_set',SET);
+  zkApplyBg();
+});
+$('zkBgSwatches').addEventListener('input',function(e){
+  if(e.target&&e.target.id==='zkBgPick'){
+    SET.bg=e.target.value;
+    zkSet('zk_set',SET);
+    zkApplyBg();
+  }
+});
+$('zkRepMin').addEventListener('input',function(){SET.repMin=parseInt(this.value)||0;$('zkRepMinVal').textContent=(SET.repMin/1000).toFixed(1)+'秒';zkSet('zk_set',SET)});
+$('zkRepMax').addEventListener('input',function(){SET.repMax=parseInt(this.value)||0;$('zkRepMaxVal').textContent=(SET.repMax/1000).toFixed(1)+'秒';zkSet('zk_set',SET)});
+$('zkRepCount').addEventListener('change',function(){SET.repCount=this.value;zkSet('zk_set',SET)});
+$('zkRepNoReply').addEventListener('input',function(){SET.noReply=parseInt(this.value)||0;$('zkRepNoReplyVal').textContent=SET.noReply+'%';zkSet('zk_set',SET)});
+$('zkRetune').addEventListener('click',function(){zkTuneOpen('重新调频会换一个专属频率')});
+$('zkClearAll').addEventListener('click',zkClearAll);
+$('zkSetCodeOut').addEventListener('click',function(){zkCodeOpen('out')});
+$('zkSetCodeIn').addEventListener('click',function(){zkCodeOpen('in')});
+$('zkCodeBack').addEventListener('click',function(){zkPage('set')});
+$('zkCodeGo').addEventListener('click',zkCodeGo);
+// ============ 启动 ============
+zkBoot();
+// SW 注册(离线缓存;file:// 下失败静默)
+try{if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){})}catch(e){}
+// 无头测试/调试出口(参考 Murphy window.__DAILY 先例)
+window.__ZK={};
+Object.defineProperty(window.__ZK,'PAIR',{get:function(){return PAIR}});
+Object.defineProperty(window.__ZK,'SIG',{get:function(){return SIG},set:function(v){SIG=v;zkSet('zk_sig',v)}});
+Object.defineProperty(window.__ZK,'CARDS',{get:function(){return CARDS},set:function(v){if(Array.isArray(v)&&v.length&&typeof v[0]==='string'){var arr=[];for(var i=0;i<v.length;i++)arr.push({text:v[i],group:'其他'});CARDS=arr}else{CARDS=v||[]}zkSet('zk_cards',CARDS)}});
+Object.defineProperty(window.__ZK,'SET',{get:function(){return SET}});
+Object.defineProperty(window.__ZK,'LASTPICKS',{get:function(){return LASTPICKS}});
+Object.defineProperty(window.__ZK,'MESSAGES',{get:function(){return MESSAGES}});
+Object.defineProperty(window.__ZK,'PROB',{get:function(){return ZK_PROB}});
+Object.defineProperty(window.__ZK,'GROUPS',{get:function(){return GROUPS}});
+window.__ZK.get=zkGet;
+window.__ZK.set=zkSet;
+window.__ZK.send=zkSend;
+window.__ZK.tuneLock=zkTuneLock;
+window.__ZK.sigOpen=zkSigOpen;
+window.__ZK.sigGo=zkSigGo;
+window.__ZK.sigTaPick=zkSigTaPick;
+window.__ZK.sigSkip=zkSigSkip;
+window.__ZK.codeOpen=zkCodeOpen;
+window.__ZK.codeGo=zkCodeGo;
+window.__ZK.b64=zkB64;
+window.__ZK.unb64=zkUnb64;
+window.__ZK.tuneStart=zkTuneStart;
+window.__ZK.gReply=gZKReply;
+window.__ZK.saveMsgs=zkSaveMsgs;
+window.__ZK.cardsOpen=zkCardsOpen;
+window.__ZK.importOpen=zkImportOpen;
+window.__ZK.importGo=zkImportGo;
+window.__ZK.cardAdd=zkCardAdd;
+window.__ZK.cardsToggle=zkCardsToggle;
+window.__ZK.cardsDelSel=zkCardsDelSel;
+window.__ZK.cardsDedup=zkCardsDedup;
+window.__ZK.buildStamp=function(noReload){window._buildStamp(noReload)};
+})();
+</script>
+</body>
+</html>
