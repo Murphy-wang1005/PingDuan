@@ -90,9 +90,9 @@ input[type=range]{accent-color:#c07a34}
 .zk-subbtn:active{transform:translateY(1px)}
 .zk-wood{height:12px;margin:10px -12px -12px;border-radius:0 0 22px 22px;flex:none;background-image:repeating-linear-gradient(0deg,rgba(60,30,8,.16) 0 2px,transparent 2px 8px),linear-gradient(90deg,#8a5f2e,#a9793f 25%,#8a5f2e 50%,#b07e42 75%,#8a5f2e);box-shadow:0 6px 12px rgba(60,30,8,.4)}
 /* ============ 浮层页 ============ */
-.zk-page{position:fixed;inset:0;z-index:80;background:radial-gradient(120% 120% at 50% 0%,#f7ecd6 0%,#ecd8b8 55%,#dcc39b 100%);display:none;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+.zk-page{position:fixed;inset:0;z-index:80;background:radial-gradient(120% 120% at 50% 0%,#f7ecd6 0%,#ecd8b8 55%,#dcc39b 100%);display:none;align-items:flex-start;justify-content:center;padding:20px;box-sizing:border-box;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .zk-page.on{display:flex}
-.zk-card{width:100%;max-width:360px;background:rgba(255,251,242,.94);border:1px solid rgba(190,140,70,.35);border-radius:18px;padding:22px 20px;box-shadow:0 16px 50px rgba(90,50,10,.35)}
+.zk-card{width:100%;max-width:360px;margin:auto 0;background:rgba(255,251,242,.94);border:1px solid rgba(190,140,70,.35);border-radius:18px;padding:22px 20px;box-shadow:0 16px 50px rgba(90,50,10,.35)}
 .zk-card-title{color:#8a5a24;font-size:16px;letter-spacing:3px;text-align:center;margin-bottom:14px;text-shadow:0 1px 0 rgba(255,255,255,.6)}
 .zk-label{display:block;font-size:12px;color:#a07848;margin:12px 0 6px;letter-spacing:2px}
 .zk-in{width:100%;box-sizing:border-box;background:#fffdf6;border:1.5px solid #dcc39a;border-radius:10px;color:#4a3418;font-size:15px;padding:10px 12px;outline:none;font-family:inherit}
@@ -356,8 +356,12 @@ window._buildStamp();
   <div class="zk-card">
     <button class="zk-btn-ghost" id="zkImportBack">← 返回</button>
     <div class="zk-card-title">批量导入</div>
-    <div class="zk-set-tip" style="margin:0 0 10px">每行一条字卡,一次性导入字卡库。重复的自动跳过。</div>
+    <div class="zk-set-tip" style="margin:0 0 10px">每行一条字卡,一次性导入字卡库。重复的自动跳过。也可以 📂 选文件导入(Murphy 回复库格式:.txt 每行一条,支持「分组|内容」;.json 数组)。</div>
     <textarea class="zk-cards-ta" id="zkImportText" placeholder="在呢&#10;想你了&#10;今天怎么样"></textarea>
+    <div class="zk-row" style="margin-top:10px">
+      <button class="zk-minbtn" id="zkImportFileBtn" style="flex:1">📂 选文件导入</button>
+    </div>
+    <input type="file" id="zkImportFile" accept=".json,.txt" style="display:none">
     <div class="zk-row" style="margin-top:10px">
       <span style="font-size:12px;color:#9fd8a8;flex:none">导入到分组</span>
       <select class="zk-in" id="zkImportGroup" style="flex:1;height:34px;padding:0 6px;font-size:13px"></select>
@@ -975,26 +979,78 @@ function zkImportOpen(){
   sg.value=GROUPS.indexOf(CARDS_FILTER)!==-1?CARDS_FILTER:'其他';
   zkPage('import');
 }
-function zkImportGo(){
-  var ta=$('zkImportText');
-  var lines=(ta&&ta.value||'').split('\n');
-  var added=0,skipped=0,seen={};
+// 共用导入引擎:去重/超60字/200上限,文件里未知分组自动入组
+function zkImportApply(items){
+  if(!items||!items.length){zkToast('没有可导入的字卡');return}
+  var added=0,skipped=0,seen={},grpChanged=false;
   for(var i=0;i<CARDS.length;i++)seen[CARDS[i].text]=1;
-  for(var j=0;j<lines.length;j++){
-    var t=lines[j].trim();
-    if(!t)continue;
+  for(var j=0;j<items.length;j++){
+    var t=String(items[j].text||'').trim();
+    if(!t){skipped++;continue}
     if(t.length>60){skipped++;continue}
     if(seen[t]){skipped++;continue}
     if(CARDS.length>=200){skipped++;continue}
     seen[t]=1;
-    var g=$('zkImportGroup').value;
-    CARDS.push({text:t,group:GROUPS.indexOf(g)!==-1?g:'其他'});
+    var g=String(items[j].group||'其他');
+    if(GROUPS.indexOf(g)===-1){GROUPS.push(g);grpChanged=true}
+    CARDS.push({text:t,group:g});
     added++;
   }
   if(added)zkSet('zk_cards',CARDS);
+  if(grpChanged)zkSet('zk_cards_groups',GROUPS);
   $('zkImportCount').textContent='本次导入 '+added+' 条'+(skipped?' · 跳过 '+skipped:'');
-  ta.value='';
   if(added){__zkPoolEmptyWarned=false;zkHintEmpty()}
+}
+// 选文件导入:与 Murphy 回复库格式兼容(.txt 每行一条,支持「分组→内容」「分组|内容」;.json 数组字符串或 {text,group});无显式分组时进「导入到分组」所选组
+function zkImportFileClick(){try{$('zkImportFile').click()}catch(e){}}
+function zkImportFilePicked(ev){
+  var f=ev.target.files&&ev.target.files[0];
+  try{ev.target.value=''}catch(e){}
+  if(!f)return;
+  if(f.size>5*1024*1024){zkToast('文件过大(≤5MB)');return}
+  var r=new FileReader();
+  r.onload=function(){zkImportApply(zkParseImportText(String(r.result||''),$('zkImportGroup').value))};
+  r.onerror=function(){zkToast('读取文件失败')};
+  r.readAsText(f);
+}
+// 解析导入文本(Murphy 兼容):json 数组(字符串或 {text,group})或 txt 每行一条;无显式分组用 defaultGroup;无有效内容返回 null
+function zkParseImportText(txt,defaultGroup){
+  if(!txt||!txt.trim())return null;
+  var dg=defaultGroup||'其他';
+  var items=[];
+  var parsed=null,isJson=false;
+  try{parsed=JSON.parse(txt);if(Object.prototype.toString.call(parsed)==='[object Array]')isJson=true}catch(e){}
+  if(isJson){
+    for(var j=0;j<parsed.length;j++){
+      var it=parsed[j];
+      if(typeof it==='string'){var s=it.trim();if(s)items.push({text:s,group:dg})}
+      else if(it&&it.text){var s2=String(it.text).trim();if(s2)items.push({text:s2,group:(it.group&&String(it.group).trim())||dg})}
+    }
+    return items.length?items:null;
+  }
+  var lines=txt.split(/[\r\n]+/);
+  for(var k=0;k<lines.length;k++){
+    var l=lines[k].trim();
+    if(!l)continue;
+    var parts=l.split('\t');
+    if(parts.length>=2){items.push({text:parts[1].trim(),group:parts[0].trim()||dg});continue}
+    var pi=l.indexOf('|');
+    if(pi>0){items.push({text:l.slice(pi+1).trim(),group:l.slice(0,pi).trim()||dg});continue}
+    items.push({text:l,group:dg});
+  }
+  return items.length?items:null;
+}
+function zkImportGo(){
+  var ta=$('zkImportText');
+  var lines=(ta&&ta.value||'').split('\n');
+  var g=$('zkImportGroup').value;
+  var items=[];
+  for(var j=0;j<lines.length;j++){
+    var t=lines[j].trim();
+    if(t)items.push({text:t,group:g});
+  }
+  zkImportApply(items);
+  ta.value='';
 }
 // ============ 立绘 ============
 function zkAvatarLoad(file){
@@ -1154,6 +1210,8 @@ $('zkGrpDone').addEventListener('click',zkGrpMgrToggle);
 $('zkGrpList').addEventListener('click',function(e){var d=e.target&&e.target.closest?e.target.closest('.zk-grp-del'):null;if(!d)return;zkGroupDel(d.getAttribute('data-g')||'')});
 $('zkImportBack').addEventListener('click',function(){zkPage('cards')});
 $('zkImportGo').addEventListener('click',zkImportGo);
+$('zkImportFileBtn').addEventListener('click',zkImportFileClick);
+$('zkImportFile').addEventListener('change',zkImportFilePicked);
 $('zkCardImportBtn').addEventListener('click',zkImportOpen);
 $('zkCardsBack').addEventListener('click',function(){zkToolsPop(false);zkPage('main')});
 $('zkGoCards').addEventListener('click',zkCardsOpen);
@@ -1230,6 +1288,8 @@ window.__ZK.saveMsgs=zkSaveMsgs;
 window.__ZK.cardsOpen=zkCardsOpen;
 window.__ZK.importOpen=zkImportOpen;
 window.__ZK.importGo=zkImportGo;
+window.__ZK.parseImportText=zkParseImportText;
+window.__ZK.importApply=zkImportApply;
 window.__ZK.cardAdd=zkCardAdd;
 window.__ZK.cardsToggle=zkCardsToggle;
 window.__ZK.cardsDelSel=zkCardsDelSel;
